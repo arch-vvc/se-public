@@ -20,8 +20,8 @@ This repository contains the source code and documentation for the Customer Rela
 - [@AUSTINDCOSTAPES1UG23AM073](https://github.com/AUSTINDCOSTAPES1UG23AM073) - Scrum Master
 - [@arch-vvc](https://github.com/arch-vvc) - Developer Team
 - [@ashwinsunilpillai](https://github.com/ashwinsunilpillai) - Developer Team
-- [@pes1ug23am079-svg](https://github.com/pes1ug23am079-svg) - Developer Team
 - [@pes1ug23am072-collab](https://github.com/pes1ug23am072-collab) - Developer Team
+- [@pes1ug23am079-svg](https://github.com/pes1ug23am079-svg) - Developer Team
 
 ## 👨‍🏫 Teaching Assistant
 
