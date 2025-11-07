@@ -1,12 +1,20 @@
-version: '3.8'
+version: "3.9"
+
 services:
   mongo:
     image: mongo:6
     restart: unless-stopped
     ports:
-      - '27017:27017'
+      # Changed host port to 27018 to avoid conflicts with existing Docker/WSL MongoDB
+      - "27018:27017"
     volumes:
       - mongo-data:/data/db
+    healthcheck:
+      # Mongo 6+ uses mongosh instead of mongo; using full path ensures reliability
+      test: ["CMD-SHELL", "/usr/bin/mongosh --eval 'db.adminCommand(\"ping\")' --quiet || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   server:
     build: ./server
@@ -14,22 +22,28 @@ services:
     command: npm start
     volumes:
       - ./server:/usr/src/app
+      # Anonymous volume to prevent overwriting node_modules inside the container
+      - /usr/src/app/node_modules
     environment:
       - MONGODB_URL=mongodb://mongo:27017/crm-db
       - PORT=5000
+      - NODE_ENV=development
     ports:
-      - '5000:5000'
+      - "5000:5000"
     depends_on:
-      - mongo
+      mongo:
+        condition: service_healthy
 
   client:
     build: ./client
     working_dir: /usr/src/app
-    command: npm run dev
+    # Pass --host so Vite listens on 0.0.0.0 inside the container and is reachable from the host
+    command: npm run dev -- --host 0.0.0.0
     volumes:
       - ./client:/usr/src/app
+      - /usr/src/app/node_modules
     ports:
-      - '5173:5173'
+      - "5173:5173"
     depends_on:
       - server
 
