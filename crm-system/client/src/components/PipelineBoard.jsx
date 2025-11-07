@@ -101,20 +101,17 @@ export default function PipelineBoard() {
                           {...provided.draggableProps}
                           {...provided.dragHandleProps}
                           style={{
-                            userSelect: 'none',
-                            padding: '12px',
+                            padding: '10px',
                             margin: '8px 0',
-                            borderRadius: '6px',
-                            background: snapshot.isDragging ? '#4f46e5' : '#e0e7ff',
-                            color: snapshot.isDragging ? '#fff' : '#111',
-                            boxShadow: snapshot.isDragging ? '0 4px 12px rgba(0,0,0,0.2)' : 'none',
+                            background: snapshot.isDragging ? '#f8f9fa' : '#fff',
+                            border: '1px solid #e9ecef',
+                            borderRadius: '4px',
+                            boxShadow: snapshot.isDragging ? '0 5px 10px rgba(0,0,0,0.15)' : 'none',
                             ...provided.draggableProps.style
                           }}
                         >
-                          <strong>{opp.name}</strong>
-                          <div style={{ fontSize: '0.9em', color: snapshot.isDragging ? '#fff' : '#555' }}>
-                            {opp.value}
-                          </div>
+                          <div style={{fontWeight: 500}}>{opp.name}</div>
+                          <div style={{fontSize: '0.875rem', color: '#666'}}>{opp.value}</div>
                         </div>
                       )}
                     </Draggable>
