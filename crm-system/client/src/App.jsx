@@ -1,10 +1,11 @@
 import React from 'react'
+import PipelineBoard from './components/PipelineBoard'
 
 export default function App() {
   return (
-    <div style={{fontFamily: 'sans-serif', padding: 20}}>
-      <h1>CRM Starter (Client)</h1>
-      <p>This is a minimal React + Vite frontend scaffold.</p>
+    <div>
+      <h1 style={{padding: '20px', margin: 0, background: '#fff'}}>CRM Pipeline</h1>
+      <PipelineBoard />
     </div>
   )
 }
