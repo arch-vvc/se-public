@@ -19,11 +19,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js for server
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
+          cache-dependency-path: crm-system/server/package-lock.json
+      - name: Setup Node.js for client
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: crm-system/client/package-lock.json
+
+
 
       - name: Install server dependencies
         working-directory: ./crm-system/server
