@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, austin1 ]
+    branches: [ main, austin1, ashwin, austin, atharva, arch]
   pull_request:
     branches: [ main ]
 
