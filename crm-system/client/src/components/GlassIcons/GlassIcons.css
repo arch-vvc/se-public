@@ -1,0 +1,52 @@
+.icon-btns {
+  display: flex;
+  gap: 1.5em;
+  align-items: center;
+}
+
+.icon-btn {
+  background: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  width: 3em;
+  height: 3em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.icon-btn__front {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+}
+
+.icon-btn__icon svg {
+  width: 2em;
+  height: 2em;
+  color: #333; /* neutral sleek tone */
+}
+
+.icon-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  transform: scale(1.05);
+}
+
+.icon-btn__label {
+  font-size: 0.9em;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  position: absolute;
+  top: 110%;
+  text-align: center;
+  color: #555;
+}
+
+.icon-btn:hover .icon-btn__label {
+  opacity: 1;
+}
