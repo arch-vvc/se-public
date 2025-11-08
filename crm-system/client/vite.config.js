@@ -7,7 +7,7 @@ export default defineConfig({
     port: 5173,
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: 'http://server:5000',  // 'server' = service name in docker-compose.yml
         changeOrigin: true
       }
     }
