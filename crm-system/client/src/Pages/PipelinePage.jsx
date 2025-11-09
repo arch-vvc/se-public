@@ -1,9 +1,11 @@
-'use client'
+ 'use client'
 
 import React, { useRef } from 'react'
 import PipelineBoard from '../components/PipelineBoard.jsx'
+import { useTheme } from '../theme/ThemeContext'
 
 export default function PipelinePage({ onBack }) {
+  const { theme } = useTheme()
   const pipelineRef = useRef([])
 
   const handleExport = () => {
@@ -25,20 +27,14 @@ export default function PipelinePage({ onBack }) {
   }
 
   return (
-    <div style={{ fontFamily: '"Roboto Mono", monospace', minHeight: '100vh', background: '#f9fafb' }}>
-      <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '15px 20px', background: '#fff', boxShadow: '0 2px 6px rgba(0,0,0,0.05)' }}>
-        <button onClick={onBack} style={{ padding: '8px 14px', background: '#e5e7eb', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-          ⬅ Home
-        </button>
-        <h1 style={{ fontSize: '2rem', fontWeight: '700', margin: 0, color: '#222' }}>
-          CRM Pipeline
-        </h1>
-        <button onClick={handleExport} style={{ padding: '8px 14px', background: '#2563eb', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
-          ⬇ Export
-        </button>
-      </header>
+    <div style={{ fontFamily: theme.typography.fontFamily, background: 'transparent', color: theme.colors.text }}>
+      {/* Minimal title to match other pages */}
+      <div style={{ padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`, marginBottom: theme.spacing.sm }}>
+        <h2 style={{ fontSize: theme.typography.fontSizes.xl, fontWeight: 700, margin: 0, color: theme.colors.primary }}>CRM Pipeline</h2>
+        <p style={{ margin: '6px 0 0', color: theme.colors.subtleText }}>Manage your opportunities using the pipeline board below.</p>
+      </div>
 
-      <main style={{ padding: '20px' }}>
+      <main style={{ padding: theme.spacing.lg }}>
         <PipelineBoard onExport={data => (pipelineRef.current = data)} />
       </main>
     </div>

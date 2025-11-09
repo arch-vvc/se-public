@@ -1,14 +1,15 @@
-'use client'
+ 'use client'
 
 import React, { useState, useEffect } from 'react'
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
+import { useTheme } from '../theme/ThemeContext'
 
-const stageColors = {
-  new: '#f5f6f7',
-  inProgress: '#e8edf3',
-  escalated: '#f3eaea',
-  resolved: '#e9f2ec'
-}
+const stageColors = (theme) => ({
+  new: theme.glassCard?.background || theme.colors.surface,
+  inProgress: theme.glassCard?.background || theme.colors.surface,
+  escalated: theme.glassCard?.background || theme.colors.surface,
+  resolved: theme.glassCard?.background || theme.colors.surface
+})
 
 const initialData = {
   stages: {
@@ -30,6 +31,7 @@ const initialData = {
 }
 
 export default function PipelineBoard({ onExport }) {
+  const { theme } = useTheme()
   const [data, setData] = useState(initialData)
   const [selectedCustomer, setSelectedCustomer] = useState(null)
 
@@ -88,11 +90,12 @@ export default function PipelineBoard({ onExport }) {
     <DragDropContext onDragEnd={onDragEnd}>
       <div style={{
         display: 'flex',
-        gap: '20px',
-        padding: '20px',
-        background: '#f9fafb',
-        minHeight: '100vh',
-        fontFamily: '"Roboto Mono", monospace'
+        gap: theme.spacing.lg,
+        padding: theme.spacing.lg,
+        background: theme.colors.surface,
+        minHeight: 'auto',
+        fontFamily: theme.typography.fontFamily,
+        color: theme.colors.text
       }}>
         {data.stageOrder.map(stageId => {
           const stage = data.stages[stageId]
@@ -105,15 +108,15 @@ export default function PipelineBoard({ onExport }) {
                   ref={provided.innerRef}
                   {...provided.droppableProps}
                   style={{
-                    background: stageColors[stageId],
-                    borderRadius: '12px',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.08)',
+                    background: stageColors(theme)[stageId],
+                    borderRadius: theme.radii.large,
+                    boxShadow: theme.shadows.card,
                     flex: 1,
-                    padding: '16px',
+                    padding: theme.spacing.md,
                     minWidth: '240px'
                   }}
                 >
-                  <h2 style={{ textAlign: 'center', color: '#222', fontSize: '1.2rem', marginBottom: '12px' }}>
+                  <h2 style={{ textAlign: 'center', color: theme.colors.primary, fontSize: theme.typography.fontSizes.lg, marginBottom: theme.spacing.md }}>
                     {stage.title}
                   </h2>
                   {opportunities.map((opp, index) => (
@@ -125,20 +128,20 @@ export default function PipelineBoard({ onExport }) {
                           {...provided.dragHandleProps}
                           onClick={() => setSelectedCustomer(opp)}
                           style={{
-                            padding: '12px',
-                            margin: '10px 0',
-                            background: snapshot.isDragging ? '#d1d5db' : '#ffffff',
-                            border: '1px solid #ddd',
-                            borderRadius: '8px',
+                            padding: theme.spacing.md,
+                            margin: `${theme.spacing.sm}px 0`,
+                            background: snapshot.isDragging ? theme.colors.surface : (theme.glassCard?.background || theme.colors.surface),
+                            border: `1px solid ${theme.colors.border}`,
+                            borderRadius: theme.radii.small,
                             boxShadow: snapshot.isDragging
-                              ? '0 6px 12px rgba(0,0,0,0.15)'
-                              : '0 2px 4px rgba(0,0,0,0.05)',
+                              ? theme.shadows.float
+                              : theme.shadows.card,
                             cursor: 'pointer',
                             ...provided.draggableProps.style
                           }}
                         >
                           <div style={{ fontWeight: 700 }}>{opp.name}</div>
-                          <div style={{ fontSize: '0.85rem', color: '#555' }}>{opp.issue}</div>
+                          <div style={{ fontSize: theme.typography.fontSizes.sm, color: theme.colors.subtleText }}>{opp.issue}</div>
                         </div>
                       )}
                     </Draggable>
@@ -152,7 +155,7 @@ export default function PipelineBoard({ onExport }) {
       </div>
     </DragDropContext>
 
-    {selectedCustomer && (
+      {selectedCustomer && (
       <div
         style={{
           position: 'fixed',
@@ -170,16 +173,17 @@ export default function PipelineBoard({ onExport }) {
       >
         <div
           style={{
-            background: '#fff',
-            padding: '24px',
-            borderRadius: '12px',
+            background: theme.colors.surface,
+            padding: theme.spacing.lg,
+            borderRadius: theme.radii.large,
             width: '320px',
-            boxShadow: '0 8px 24px rgba(0,0,0,0.2)',
-            fontFamily: '"Roboto Mono", monospace'
+            boxShadow: theme.shadows.float,
+            fontFamily: theme.typography.fontFamily,
+            color: theme.colors.text
           }}
           onClick={(e) => e.stopPropagation()}
         >
-          <h3 style={{ marginBottom: '12px' }}>{selectedCustomer.name}</h3>
+          <h3 style={{ marginBottom: theme.spacing.md }}>{selectedCustomer.name}</h3>
           <p><strong>Contact:</strong> {selectedCustomer.contact}</p>
           <p><strong>Issue:</strong> {selectedCustomer.issue}</p>
           <p><strong>Order History:</strong></p>
@@ -191,12 +195,12 @@ export default function PipelineBoard({ onExport }) {
           <button
             onClick={() => setSelectedCustomer(null)}
             style={{
-              marginTop: '16px',
-              padding: '8px 12px',
-              background: '#374151',
-              color: '#fff',
+              marginTop: theme.spacing.md,
+              padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+              background: theme.colors.primary,
+              color: theme.colors.surface,
               border: 'none',
-              borderRadius: '6px',
+              borderRadius: theme.radii.small,
               cursor: 'pointer'
             }}
           >

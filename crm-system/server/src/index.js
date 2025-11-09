@@ -16,6 +16,14 @@ app.use(express.json());
 
 // Routes
 app.use('/api/customers', customersRouter);
+// Leads
+try {
+  const leadsRouter = require('./routes/leadRoutes')
+  app.use('/api/leads', leadsRouter)
+  console.log('✅ Registered /api/leads routes')
+} catch (err) {
+  console.error('❌ Could not register /api/leads routes', err && err.stack ? err.stack : err)
+}
 
 // backend
 app.get('/', (req, res) => {
