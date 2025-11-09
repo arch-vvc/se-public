@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [ main, austin1, ashwin, austin, atharva, arch]
+    branches: [ main, austin1, ashwin, austin, atharva, arch ]
   pull_request:
     branches: [ main ]
 
@@ -19,20 +19,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # SERVER SETUP
       - name: Setup Node.js for server
         uses: actions/setup-node@v4
         with:
           node-version: '18'
           cache: 'npm'
           cache-dependency-path: crm-system/server/package-lock.json
-      - name: Setup Node.js for client
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: crm-system/client/package-lock.json
-
-
 
       - name: Install server dependencies
         working-directory: ./crm-system/server
@@ -45,9 +38,19 @@ jobs:
           MONGODB_URL: mongodb://localhost:27017/crm-test
           JWT_SECRET: test-secret
 
-      - name: Install client dependencies
+      # CLIENT SETUP (fix Rollup optional deps)
+      - name: Setup Node.js for client
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: crm-system/client/package-lock.json
+
+      - name: Clean client install
         working-directory: ./crm-system/client
-        run: npm ci
+        run: |
+          rm -rf node_modules package-lock.json
+          npm install --legacy-peer-deps
 
       - name: Build client
         working-directory: ./crm-system/client
