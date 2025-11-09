@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useTheme } from '../theme/ThemeContext'
 import CustomerForm from "./CustomerForm";
 import {
   fetchCustomers,
@@ -10,6 +11,7 @@ import {
 } from "../services/customers";
 
 export default function Customers() {
+  const { theme } = useTheme()
   const [customers, setCustomers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -96,40 +98,40 @@ export default function Customers() {
   };
 
   return (
-    <div style={{ padding: 20 }}>
+    <div style={{ padding: theme.spacing.lg, color: theme.colors.text }}>
       <div
         style={{
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: 16,
+          marginBottom: theme.spacing.md,
         }}
       >
-        <h2>Customers</h2>
-        <div style={{ display: "flex", gap: 8 }}>
-          <button onClick={() => setShowForm(true)}>Add Customer</button>
-          <button onClick={load}>Refresh</button>
+        <h2 style={{ color: theme.colors.primary }}>Customers</h2>
+        <div style={{ display: "flex", gap: theme.spacing.sm }}>
+          <button onClick={() => setShowForm(true)} style={{ borderRadius: theme.radii.small }}>Add Customer</button>
+          <button onClick={load} style={{ borderRadius: theme.radii.small }}>Refresh</button>
 
           {/* ✅ Import/Export UI */}
           <input
             type="file"
             accept=".csv"
             onChange={(e) => setFile(e.target.files[0])}
-            style={{ marginLeft: 8 }}
+            style={{ marginLeft: theme.spacing.sm }}
           />
-          <button onClick={handleImport}>Import CSV</button>
-          <button onClick={handleExport}>Export CSV</button>
+          <button onClick={handleImport} style={{ borderRadius: theme.radii.small }}>Import CSV</button>
+          <button onClick={handleExport} style={{ borderRadius: theme.radii.small }}>Export CSV</button>
         </div>
       </div>
 
       {showForm && (
         <div
           style={{
-            marginTop: 12,
-            marginBottom: 12,
-            background: "#fff",
-            padding: 12,
-            borderRadius: 6,
+            marginTop: theme.spacing.sm,
+            marginBottom: theme.spacing.sm,
+            background: theme.glassCard?.background || theme.colors.surface,
+            padding: theme.spacing.md,
+            borderRadius: theme.radii.medium,
           }}
         >
           <CustomerForm
@@ -144,21 +146,21 @@ export default function Customers() {
       )}
 
       {loading && <div>Loading...</div>}
-      {error && <div style={{ color: "red" }}>{error}</div>}
+      {error && <div style={{ color: theme.colors.danger }}>{error}</div>}
 
-      <div style={{ marginTop: 12 }}>
+      <div style={{ marginTop: theme.spacing.md }}>
         {customers.length === 0 && !loading ? (
-          <div>No customers yet.</div>
+          <div style={{ color: theme.colors.subtleText }}>No customers yet.</div>
         ) : (
-          <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "grid", gap: theme.spacing.sm }}>
             {customers.map((c) => (
               <div
                 key={c._id}
                 style={{
-                  padding: 12,
-                  border: "1px solid #eee",
-                  borderRadius: 6,
-                  background: "#fff",
+                  padding: theme.spacing.md,
+                  border: `1px solid ${theme.colors.border}`,
+                  borderRadius: theme.radii.small,
+                  background: theme.glassCard?.background || theme.colors.surface,
                 }}
               >
                 <div
@@ -169,21 +171,19 @@ export default function Customers() {
                   }}
                 >
                   <div>
-                    <div style={{ fontWeight: 600 }}>{c.name}</div>
-                    <div style={{ fontSize: 12, color: "#555" }}>
+                    <div style={{ fontWeight: 600, color: theme.colors.primary }}>{c.name}</div>
+                    <div style={{ fontSize: theme.typography.fontSizes.sm, color: theme.colors.subtleText }}>
                       {c.company || ""} {c.email ? `• ${c.email}` : ""}
                     </div>
                   </div>
                   <div>
-                    <button onClick={() => handleEdit(c)} style={{ marginRight: 8 }}>
-                      Edit
-                    </button>
-                    <button onClick={() => handleDelete(c)}>Delete</button>
+                    <button onClick={() => handleEdit(c)} style={{ marginRight: theme.spacing.sm, borderRadius: theme.radii.small }}>Edit</button>
+                    <button onClick={() => handleDelete(c)} style={{ borderRadius: theme.radii.small }}>Delete</button>
                   </div>
                 </div>
-                {c.phone && <div style={{ marginTop: 8 }}>{c.phone}</div>}
+                {c.phone && <div style={{ marginTop: theme.spacing.sm }}>{c.phone}</div>}
                 {c.address && (
-                  <div style={{ marginTop: 4, fontSize: 13, color: "#666" }}>
+                  <div style={{ marginTop: theme.spacing.xs, fontSize: theme.typography.fontSizes.sm, color: theme.colors.subtleText }}>
                     {c.address}
                   </div>
                 )}

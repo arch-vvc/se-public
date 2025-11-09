@@ -1,8 +1,10 @@
-'use client'
+ 'use client'
 
 import React, { useState } from 'react'
 import Dock from './components/Dock/Dock.jsx'
 import './components/Dock/Dock.css'
+import themes from './theme/theme'
+import ThemeContext from './theme/ThemeContext'
 
 // Import wrapper + other pages
 import PipelinePage from './Pages/PipelinePage.jsx'
@@ -55,6 +57,17 @@ const DashboardIcon = (
 export default function App() {
   const [activeView, setActiveView] = useState(null)
 
+  // Theme state
+  const themeKeys = Object.keys(themes)
+  const [themeName, setThemeName] = useState(themeKeys[0] || 'light')
+  const theme = themes[themeName] || themes.light
+
+  const cycleTheme = () => {
+    const idx = themeKeys.indexOf(themeName)
+    const next = themeKeys[(idx + 1) % themeKeys.length]
+    setThemeName(next)
+  }
+
   const dockItems = [
     { label: 'Manage Pipeline', icon: PipelineIcon, onClick: () => setActiveView('pipeline') },
     { label: 'New Leads', icon: LeadsIcon, onClick: () => setActiveView('leads') },
@@ -64,21 +77,28 @@ export default function App() {
   ]
 
   return (
-    <div style={{ fontFamily: '"Roboto Mono", monospace', minHeight: '100vh', background: '#f9fafb', position: 'relative', textAlign: 'center' }}>
+    <ThemeContext.Provider value={{ theme, themeName, setThemeName, cycleTheme }}>
+  <div style={{ fontFamily: theme.typography.fontFamily, minHeight: '100vh', background: theme.colors.surface, position: 'relative', textAlign: 'center', color: theme.colors.text, paddingBottom: theme.spacing.xl * 4 }}>
       <h1 style={{
-        padding: '40px 20px 10px',
+        padding: '24px 20px 8px',
         margin: 0,
         fontSize: '3.5rem',
         fontWeight: '700',
-        color: '#222'
+        color: theme.colors.primary
       }}>
         CRM System
       </h1>
+      {/* small theme switcher */}
+      <div style={{ position: 'absolute', right: 12, top: 12 }}>
+        <button onClick={cycleTheme} style={{ padding: '8px 12px', borderRadius: theme.radii.small, border: `1px solid ${theme.colors.border}`, background: theme.button.background, color: theme.button.color, cursor: 'pointer' }}>
+          Theme: {theme.name}
+        </button>
+      </div>
 
       {!activeView && (
         <p style={{
-          fontSize: '1rem',
-          color: '#555',
+          fontSize: theme.typography.fontSizes.md,
+          color: theme.colors.subtleText,
           marginTop: '0',
           marginBottom: '30px'
         }}>
@@ -86,7 +106,7 @@ export default function App() {
         </p>
       )}
 
-      <div style={{ padding: '20px' }}>
+      <div style={{ padding: theme.spacing.lg }}>
         {activeView === 'pipeline' && <PipelinePage onBack={() => setActiveView(null)} />}
         {activeView === 'leads' && <NewLeads />}
         {activeView === 'profiles' && <CustomerProfiles />}
@@ -94,7 +114,13 @@ export default function App() {
         {activeView === 'dashboard' && <BusinessDashboard />}
       </div>
 
-      <Dock items={dockItems} />
+      <Dock
+        items={dockItems}
+        magnification={activeView === 'leads' ? 52 : 70}
+        distance={activeView === 'leads' ? 120 : 200}
+        panelHeight={activeView === 'leads' ? 56 : 68}
+      />
     </div>
+    </ThemeContext.Provider>
   )
 }
