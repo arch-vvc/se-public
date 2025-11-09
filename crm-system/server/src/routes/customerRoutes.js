@@ -1,11 +1,16 @@
-const express = require('express')
-const router = express.Router()
-const controller = require('../controllers/customersController')
+const express = require('express');
+const router = express.Router();
+const customerController = require('../controllers/customersController');
 
-router.get('/', controller.getAll)
-router.get('/:id', controller.getOne)
-router.post('/', controller.create)
-router.put('/:id', controller.update)
-router.delete('/:id', controller.remove)
+// CSV Import/Export
+router.post('/import', customerController.importCustomers);
+router.get('/export', customerController.exportCustomers);
 
-module.exports = router
+// CRUD routes
+router.get('/', customerController.getAll);
+router.get('/:id', customerController.getOne);
+router.post('/', customerController.create);
+router.put('/:id', customerController.update);
+router.delete('/:id', customerController.remove);
+
+module.exports = router;

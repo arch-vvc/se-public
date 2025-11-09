@@ -17,8 +17,14 @@ app.use(express.json());
 // Routes
 app.use('/api/customers', customersRouter);
 
+// backend
+app.get('/', (req, res) => {
+  res.send('<h2>CRM Backend is Running! </h2>');
+});
+
 // Health check
 app.get('/health', (req, res) => res.json({ status: 'ok' }));
+
 
 // Global error handler (always last)
 app.use((err, req, res, next) => {
