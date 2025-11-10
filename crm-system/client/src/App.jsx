@@ -9,6 +9,7 @@ import ThemeContext from './theme/ThemeContext'
 // Import wrapper + other pages
 import PipelinePage from './Pages/PipelinePage.jsx'
 import NewLeads from './Pages/NewLeads.jsx'
+import LeadManagement from './Pages/LeadManagement.jsx'
 import CustomerProfiles from './Pages/CustomerProfiles.jsx'
 import SupportTickets from './Pages/SupportTickets.jsx'
 import BusinessDashboard from './Pages/BusinessDashboard.jsx'
@@ -71,6 +72,7 @@ export default function App() {
   const dockItems = [
     { label: 'Manage Pipeline', icon: PipelineIcon, onClick: () => setActiveView('pipeline') },
     { label: 'New Leads', icon: LeadsIcon, onClick: () => setActiveView('leads') },
+    { label: 'Lead Management', icon: LeadsIcon, onClick: () => setActiveView('leadmanagement') },
     { label: 'Customer Profiles', icon: ProfilesIcon, onClick: () => setActiveView('profiles') },
     { label: 'Support Tickets', icon: TicketsIcon, onClick: () => setActiveView('tickets') },
     { label: 'Business Dashboard', icon: DashboardIcon, onClick: () => setActiveView('dashboard') }
@@ -107,8 +109,9 @@ export default function App() {
       )}
 
       <div style={{ padding: theme.spacing.lg }}>
-        {activeView === 'pipeline' && <PipelinePage onBack={() => setActiveView(null)} />}
-        {activeView === 'leads' && <NewLeads />}
+  {activeView === 'pipeline' && <PipelinePage onBack={() => setActiveView(null)} />}
+  {activeView === 'leads' && <NewLeads />}
+  {activeView === 'leadmanagement' && <LeadManagement />}
         {activeView === 'profiles' && <CustomerProfiles />}
         {activeView === 'tickets' && <SupportTickets />}
         {activeView === 'dashboard' && <BusinessDashboard />}

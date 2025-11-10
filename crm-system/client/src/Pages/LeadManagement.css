@@ -1,0 +1,13 @@
+/* Minimal styling to align with existing app visuals. Primary layout is inline-style-driven to match patterns in the project. */
+.lm-card {
+  padding: 12px;
+  border-radius: 8px;
+  display: flex;
+  align-items: flex-start;
+  background: transparent;
+  border: 1px solid rgba(0,0,0,0.06);
+}
+
+@media (max-width: 700px) {
+  .lm-card { flex-direction: column; gap: 8px; }
+}

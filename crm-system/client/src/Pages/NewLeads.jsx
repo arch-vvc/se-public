@@ -179,9 +179,9 @@ export default function NewLeads() {
         <input name="source" placeholder="Source *" value={form.source} onChange={handleChange} style={inputStyle} />
         <select name="status" value={form.status} onChange={handleChange} style={inputStyle}>
           <option value="new">New</option>
-          <option value="contacted">Contacted</option>
-          <option value="qualified">Qualified</option>
-          <option value="lost">Lost</option>
+          <option value="in-progress">In Progress</option>
+          <option value="escalated">Escalated</option>
+          <option value="resolved">Resolved</option>
         </select>
 
         <textarea
