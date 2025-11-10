@@ -12,6 +12,14 @@ export default defineConfig({
         target: isDocker ? 'http://server:5000' : 'http://localhost:5000',
         changeOrigin: true
       }
+      ,
+      // Proxy uploaded documents to backend during development so links like
+      // /uploads/<file> open the actual file instead of being handled by the SPA.
+      '/uploads': {
+        target: isDocker ? 'http://server:5000' : 'http://localhost:5000',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/uploads/, '/uploads')
+      }
     }
   }
 })

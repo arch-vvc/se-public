@@ -7,6 +7,14 @@ const CustomerSchema = new mongoose.Schema({
   address: { type: String },
   company: { type: String },
   notes: { type: String },
+  // Document (e.g. resume) uploaded by customer
+  document: {
+    filename: { type: String },
+    originalName: { type: String },
+    mimeType: { type: String },
+    size: { type: Number },
+    uploadedAt: { type: Date }
+  },
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now }
 })

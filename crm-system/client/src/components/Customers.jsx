@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 import CustomerForm from './CustomerForm'
 import {
   fetchCustomers,
@@ -7,6 +7,8 @@ import {
   deleteCustomer,
   importCustomers,
   exportCustomers,
+  uploadCustomerDocument,
+  deleteCustomerDocument,
 } from '../services/customers'
 
 // This component can operate in two modes:
@@ -19,6 +21,9 @@ export default function Customers({ customers: propsCustomers, onEdit: propsOnEd
   const [editing, setEditing] = useState(null)
   const [showForm, setShowForm] = useState(false)
   const [file, setFile] = useState(null)
+  const fileInputRef = useRef(null)
+  const [selectedForUpload, setSelectedForUpload] = useState(null)
+  const [uploadingId, setUploadingId] = useState(null)
 
   const theme = propsTheme || {
     spacing: { sm: 8, md: 12, lg: 18 },
@@ -141,19 +146,70 @@ export default function Customers({ customers: propsCustomers, onEdit: propsOnEd
 
       <div style={{ display: 'grid', gap: 14 }}>
         {customers.map((c) => (
-          <div key={c._id} style={{ ...cardStyle }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-              <div style={{ flex: 1, textAlign: 'center' }}>
-                <div style={{ fontWeight: 700, fontSize: theme.typography.fontSizes.xl }}>{c.name}</div>
-                <div style={{ color: theme.colors.subtleText, marginTop: 6 }}>{c.email || ''} {c.company ? `• ${c.company}` : ''}</div>
-                {c.phone && <div style={{ marginTop: theme.spacing.sm, fontSize: theme.typography.fontSizes.lg }}>{c.phone}</div>}
-                {c.notes && <div style={{ marginTop: theme.spacing.sm }}>{c.notes}</div>}
-              </div>
+          <div key={c._id} style={{ ...cardStyle, position: 'relative', minHeight: 110 }}>
+            {/* Hidden file input used for upload */}
+            <input ref={fileInputRef} type="file" accept="application/pdf" style={{ display: 'none' }} onChange={async (e) => {
+              const f = e.target.files && e.target.files[0]
+              if (!f) return
+              if (f.type !== 'application/pdf') {
+                alert('Only PDF files are allowed')
+                e.target.value = ''
+                return
+              }
+              const id = selectedForUpload
+              try {
+                setUploadingId(id)
+                const updated = await uploadCustomerDocument(id, f)
+                setCustomers((prev) => prev.map((p) => (p._id === updated._id ? updated : p)))
+              } catch (err) {
+                console.error('upload error', err)
+                alert('Failed to upload document')
+              } finally {
+                setUploadingId(null)
+                setSelectedForUpload(null)
+                e.target.value = ''
+              }
+            }} />
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
-                <button onClick={() => handleEdit(c)} style={{ ...btnSmall, background: '#fff', border: `1px solid ${theme.colors.border}` }}>Update</button>
-                <button onClick={() => handleDelete(c)} style={{ ...btnSmall, background: theme.colors.danger, color: '#fff' }}>Delete</button>
-              </div>
+            <div style={{ textAlign: 'center', paddingTop: 8, paddingBottom: 28 }}>
+              <div style={{ fontWeight: 700, fontSize: theme.typography.fontSizes.xl }}>{c.name}</div>
+              <div style={{ color: theme.colors.subtleText, marginTop: 6 }}>{c.email || ''} {c.company ? `• ${c.company}` : ''}</div>
+              {c.phone && <div style={{ marginTop: theme.spacing.sm, fontSize: theme.typography.fontSizes.lg }}>{c.phone}</div>}
+              {c.notes && <div style={{ marginTop: theme.spacing.sm }}>{c.notes}</div>}
+              {c.document && c.document.filename && (
+                <div style={{ marginTop: theme.spacing.sm, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+                  <a href={`/uploads/${c.document.filename}`} target="_blank" rel="noopener noreferrer">{c.document.originalName || 'Document'}</a>
+                  <button onClick={async () => {
+                    if (!window.confirm('Delete attached document?')) return
+                    try {
+                      const updated = await deleteCustomerDocument(c._id)
+                      setCustomers((prev) => prev.map((p) => (p._id === updated._id ? updated : p)))
+                    } catch (err) {
+                      console.error('delete doc err', err)
+                      alert('Failed to delete document')
+                    }
+                  }} style={{ ...btnSmall, background: '#fff', border: `1px solid ${theme.colors.border}`, padding: '4px 8px' }}>🗑</button>
+                </div>
+              )}
+            </div>
+
+            {/* Top-right: Update/Delete */}
+            <div style={{ position: 'absolute', top: 12, right: 12, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <button onClick={() => handleEdit(c)} style={{ ...btnSmall, background: '#fff', border: `1px solid ${theme.colors.border}` }}>Update</button>
+              <button onClick={() => handleDelete(c)} style={{ ...btnSmall, background: theme.colors.danger, color: '#fff' }}>Delete</button>
+            </div>
+
+            {/* Bottom-right: Upload / Delete document */}
+            <div style={{ position: 'absolute', bottom: 12, right: 12 }}>
+              {!c.document || !c.document.filename ? (
+                <button
+                  onClick={() => { setSelectedForUpload(c._id); if (fileInputRef.current) fileInputRef.current.click() }}
+                  style={{ ...btnSmall, background: '#e6e6e6', color: '#222', border: `1px solid ${theme.colors.border}` }}
+                  disabled={uploadingId === c._id}
+                >
+                  {uploadingId === c._id ? 'Uploading...' : 'Upload'}
+                </button>
+              ) : null}
             </div>
           </div>
         ))}

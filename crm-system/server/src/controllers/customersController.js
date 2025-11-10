@@ -103,6 +103,32 @@ exports.remove = async (req, res) => {
 // Multer setup for file uploads
 const upload = multer({ dest: 'uploads/' });
 
+// Multer setup for customer document uploads (PDF only)
+const docStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(process.cwd(), 'uploads')
+    try {
+      fs.mkdirSync(dir, { recursive: true })
+    } catch (e) {}
+    cb(null, dir)
+  },
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9.-_]/g, '_')
+    cb(null, `${Date.now()}-${safeName}`)
+  }
+})
+
+const docUpload = multer({
+  storage: docStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype !== 'application/pdf') {
+      return cb(new Error('Only PDF files are allowed'), false)
+    }
+    cb(null, true)
+  },
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+})
+
 // POST /api/customers/import
 exports.importCustomers = [
   upload.single('file'),
@@ -180,3 +206,63 @@ exports.exportCustomers = async (req, res) => {
     res.status(500).json({ error: 'Failed to export customers' });
   }
 };
+
+// POST /api/customers/:id/document
+exports.uploadDocument = [
+  docUpload.single('document'),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+      const customer = await Customer.findById(id)
+      if (!customer) return res.status(404).json({ error: 'Customer not found' })
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded or invalid file type' })
+
+      // Remove previous file if exists
+      try {
+        if (customer.document && customer.document.filename) {
+          const prevPath = path.join(process.cwd(), 'uploads', customer.document.filename)
+          if (fs.existsSync(prevPath)) fs.unlinkSync(prevPath)
+        }
+      } catch (e) {
+        console.warn('Failed removing previous document', e.message)
+      }
+
+      customer.document = {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        uploadedAt: Date.now()
+      }
+
+      await customer.save()
+      res.json({ data: customer })
+    } catch (err) {
+      console.error('uploadDocument error:', err)
+      res.status(500).json({ error: 'Failed to upload document' })
+    }
+  }
+]
+
+// DELETE /api/customers/:id/document
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { id } = req.params
+    const customer = await Customer.findById(id)
+    if (!customer) return res.status(404).json({ error: 'Customer not found' })
+
+    if (customer.document && customer.document.filename) {
+      const filePath = path.join(process.cwd(), 'uploads', customer.document.filename)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
+    }
+
+    customer.document = undefined
+    await customer.save()
+    res.json({ data: customer })
+  } catch (err) {
+    console.error('deleteDocument error:', err)
+    res.status(500).json({ error: 'Failed to delete document' })
+  }
+}

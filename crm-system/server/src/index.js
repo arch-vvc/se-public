@@ -3,6 +3,7 @@ const cors = require('cors');
 const dotenv = require('dotenv');
 const mongoose = require('mongoose');
 const connectDB = require('./config/db');
+const path = require('path');
 
 // Routers
 const customersRouter = require('./routes/customerRoutes');
@@ -19,6 +20,9 @@ app.use(express.json());
 // Routes
 app.use('/api/customers', customersRouter);
 app.use('/api/leads', leadsRouter); // ✅ mounted leads routes
+
+// Serve uploaded files (documents)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
 // Backend home
 app.get('/', (req, res) => {

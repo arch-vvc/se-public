@@ -6,6 +6,10 @@ const customerController = require('../controllers/customersController');
 router.post('/import', customerController.importCustomers);
 router.get('/export', customerController.exportCustomers);
 
+// Document upload/delete for customer
+router.post('/:id/document', customerController.uploadDocument);
+router.delete('/:id/document', customerController.deleteDocument);
+
 // CRUD routes
 router.get('/', customerController.getAll);
 router.get('/:id', customerController.getOne);
