@@ -1,133 +1,159 @@
-'use client'
+import React, { useEffect, useState } from 'react'
+import { useTheme } from '../theme/ThemeContext'
+import Customers from '../components/Customers'
+import * as customerService from '../services/customers'
 
-import React, { useEffect, useState } from "react"
-import { useTheme } from "../theme/ThemeContext"
-
-const CustomerProfiles = () => {
+export default function CustomerProfiles() {
   const { theme } = useTheme()
-
   const [customers, setCustomers] = useState([])
-  const [loading, setLoading] = useState(true)
-  const [query, setQuery] = useState("")
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [editing, setEditing] = useState(null)
+  const [form, setForm] = useState({ name: '', email: '', company: '', phone: '', notes: '' })
+  const [searchTerm, setSearchTerm] = useState('')
+
+  const load = async (q) => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await customerService.fetchCustomers(q)
+      setCustomers(res.data || [])
+    } catch (err) {
+      console.error('load customers', err)
+      setError('Failed to load customers')
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Replace with your real API
-    const fetchCustomers = async () => {
-      setLoading(true)
-      try {
-        // placeholder data until backend is ready
-        const mock = [
-          { id: 1, name: "John Doe", email: "john@example.com" },
-          { id: 2, name: "Ada Lovelace", email: "ada@math.org" },
-          { id: 3, name: "Marie Curie", email: "marie@physics.net" }
-        ]
-        setCustomers(mock)
-      } catch (err) {
-        console.error("Failed to fetch customers", err)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchCustomers()
+    load()
   }, [])
 
-  const filtered = customers.filter((c) =>
-    c.name.toLowerCase().includes(query.toLowerCase()) ||
-    c.email.toLowerCase().includes(query.toLowerCase())
-  )
+  const doSearch = async () => {
+    await load(searchTerm && searchTerm.trim() ? searchTerm.trim() : undefined)
+  }
+
+  const clearSearch = async () => {
+    setSearchTerm('')
+    await load()
+  }
+
+  const openAdd = () => {
+    setEditing(null)
+    setForm({ name: '', email: '', company: '', phone: '', notes: '' })
+    setShowForm(true)
+  }
+
+  const openEdit = (c) => {
+    setEditing(c)
+    setForm({ name: c.name || '', email: c.email || '', company: c.company || '', phone: c.phone || '', notes: c.notes || '' })
+    setShowForm(true)
+  }
+
+  const onDelete = async (c) => {
+    if (!confirm(`Delete ${c.name}? This cannot be undone.`)) return
+    try {
+      await customerService.deleteCustomer(c._id)
+      setCustomers((prev) => prev.filter((p) => p._id !== c._id))
+    } catch (err) {
+      console.error('delete customer', err)
+      alert('Failed to delete customer')
+    }
+  }
+
+  const onSubmit = async (e) => {
+    e.preventDefault()
+    try {
+      if (editing) {
+        const res = await customerService.updateCustomer(editing._id, form)
+        setCustomers((prev) => prev.map((p) => (p._id === res.data._id ? res.data : p)))
+      } else {
+        const res = await customerService.createCustomer(form)
+        setCustomers((prev) => [res.data, ...prev])
+      }
+      setShowForm(false)
+    } catch (err) {
+      console.error('save customer', err)
+      alert(err?.response?.data?.message || 'Failed to save')
+    }
+  }
+
+  const card = {
+    padding: theme.spacing.lg,
+    borderRadius: theme.radii.large,
+    background: theme.glassCard?.background || theme.colors.surface,
+    border: theme.glassCard?.border || `1px solid ${theme.colors.border}`,
+    boxShadow: theme.shadows.card,
+  }
 
   return (
-    <main style={{ padding: theme.spacing.lg, color: theme.colors.text, textAlign: 'left' }}>
-      <header style={{ marginBottom: theme.spacing.md }}>
-        <h2 style={{ fontSize: theme.typography.fontSizes.xl, fontWeight: 700, margin: 0, color: theme.colors.primary }}>Customer Profiles</h2>
-        <p className="muted" style={{ color: theme.colors.subtleText, marginTop: 6 }}>View and search your customer list.</p>
-      </header>
+    <div style={{ padding: theme.spacing.lg, maxWidth: 1000, margin: '0 auto', color: theme.colors.text }}>
+      <h2 style={{ marginTop: 0, fontSize: theme.typography.fontSizes.xl, fontWeight: 700, color: theme.colors.primary }}>
+        Customer Profiles
+      </h2>
+      <p style={{ color: theme.colors.subtleText, marginTop: -8 }}>Manage customers — add, edit, or remove customer records.</p>
 
-      <div style={{ marginBottom: theme.spacing.md }}>
-        <input
-          type="search"
-          value={query}
-          placeholder="Search customers..."
-          onChange={(e) => setQuery(e.target.value)}
-          style={{
-            padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
-            width: "100%",
-            maxWidth: 400,
-            border: `1px solid ${theme.colors.border}`,
-            borderRadius: theme.radii.small,
-            background: theme.colors.surface,
-            color: theme.colors.text,
-            boxSizing: "border-box"
-          }}
-        />
+      <div style={{ ...card, marginTop: theme.spacing.md }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <input
+              aria-label="Search customers"
+              placeholder="Search customers"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); doSearch() } }}
+              style={{ padding: theme.spacing.sm, borderRadius: theme.radii.medium, border: `1px solid ${theme.colors.border}`, minWidth: 220, background: theme.colors.surface }}
+            />
+            <button onClick={doSearch} style={{ padding: `${theme.spacing.sm}px ${theme.spacing.md}px`, borderRadius: theme.radii.medium, border: '1px solid ' + theme.colors.border, background: theme.button.background, color: theme.button.color, cursor: 'pointer' }}>
+              Search
+            </button>
+            <button onClick={clearSearch} style={{ padding: `${theme.spacing.sm}px ${theme.spacing.md}px`, borderRadius: theme.radii.medium, border: '1px solid ' + theme.colors.border, background: 'transparent', color: theme.colors.subtleText, cursor: 'pointer' }}>
+              Clear
+            </button>
+          </div>
+
+          <div>
+            <button onClick={openAdd} style={{ padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`, borderRadius: theme.radii.medium, border: 'none', background: theme.button.background, color: theme.button.color, cursor: 'pointer' }}>
+              Add Customer
+            </button>
+          </div>
+        </div>
+
+        <div style={{ marginTop: theme.spacing.md }}>
+          {loading && <div>Loading customers...</div>}
+          {error && <div style={{ color: theme.colors.danger }}>{error}</div>}
+
+          {!loading && <Customers customers={customers} onEdit={openEdit} onDelete={onDelete} theme={theme} />}
+        </div>
       </div>
 
-      {loading ? (
-        <p>Loading customers…</p>
-      ) : filtered.length === 0 ? (
-        <p>No customers found.</p>
-      ) : (
-        <ul style={{ listStyle: "none", padding: 0 }}>
-          {filtered.map((c) => (
-            <li
-              key={c.id}
-              style={{
-                padding: theme.spacing.md,
-                border: `1px solid ${theme.colors.border}`,
-                borderRadius: theme.radii.small,
-                marginBottom: theme.spacing.sm,
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                background: theme.glassCard?.background || theme.colors.surface
-              }}
-            >
+      {showForm && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 40 }}>
+          <form onSubmit={onSubmit} style={{ width: 640, padding: theme.spacing.lg, borderRadius: theme.radii.large, background: theme.colors.surface, border: `1px solid ${theme.colors.border}` }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ fontWeight: 700 }}>{editing ? 'Update Customer' : 'Add Customer'}</div>
               <div>
-                <strong style={{ color: theme.colors.primary }}>{c.name}</strong>
-                <div
-                  style={{
-                    fontSize: theme.typography.fontSizes.sm,
-                    color: theme.colors.subtleText
-                  }}
-                >
-                  {c.email}
-                </div>
+                <button type="button" onClick={() => setShowForm(false)} style={{ background: 'transparent', border: 'none', color: theme.colors.subtleText, cursor: 'pointer' }}>Cancel</button>
               </div>
+            </div>
 
-              <div>
-                <button
-                  style={{
-                    marginRight: 8,
-                    padding: "6px 12px",
-                    borderRadius: theme.radii.small,
-                    border: "none",
-                    background: theme.colors.primary,
-                    color: "#fff",
-                    cursor: "pointer"
-                  }}
-                >
-                  View
-                </button>
-                <button
-                  style={{
-                    padding: "6px 12px",
-                    borderRadius: theme.radii.small,
-                    border: "none",
-                    background: theme.colors.secondary || "#444",
-                    color: "#fff",
-                    cursor: "pointer"
-                  }}
-                >
-                  Message
-                </button>
+            <div style={{ marginTop: theme.spacing.md, display: 'grid', gap: theme.spacing.sm }}>
+              <input required placeholder="Full name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} style={{ padding: theme.spacing.sm, borderRadius: theme.radii.medium, border: `1px solid ${theme.colors.border}` }} />
+              <input required placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} style={{ padding: theme.spacing.sm, borderRadius: theme.radii.medium, border: `1px solid ${theme.colors.border}` }} />
+              <input placeholder="Company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} style={{ padding: theme.spacing.sm, borderRadius: theme.radii.medium, border: `1px solid ${theme.colors.border}` }} />
+              <input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} style={{ padding: theme.spacing.sm, borderRadius: theme.radii.medium, border: `1px solid ${theme.colors.border}` }} />
+              <textarea placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} style={{ padding: theme.spacing.sm, borderRadius: theme.radii.medium, border: `1px solid ${theme.colors.border}`, minHeight: 80 }} />
+
+              <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+                <button type="button" onClick={() => setShowForm(false)} style={{ padding: `${theme.spacing.sm}px ${theme.spacing.md}px`, borderRadius: theme.radii.medium, border: '1px solid ' + theme.colors.border, background: 'transparent', color: theme.colors.subtleText }}>Cancel</button>
+                <button type="submit" style={{ padding: `${theme.spacing.sm}px ${theme.spacing.md}px`, borderRadius: theme.radii.medium, border: 'none', background: theme.button.background, color: theme.button.color }}>{editing ? 'Save' : 'Create'}</button>
               </div>
-            </li>
-          ))}
-        </ul>
+            </div>
+          </form>
+        </div>
       )}
-    </main>
+    </div>
   )
 }
-
-export default CustomerProfiles

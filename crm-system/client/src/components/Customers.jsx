@@ -1,6 +1,5 @@
-import React, { useEffect, useState } from "react";
-import { useTheme } from '../theme/ThemeContext'
-import CustomerForm from "./CustomerForm";
+import React, { useEffect, useState } from 'react'
+import CustomerForm from './CustomerForm'
 import {
   fetchCustomers,
   createCustomer,
@@ -8,190 +7,157 @@ import {
   deleteCustomer,
   importCustomers,
   exportCustomers,
-} from "../services/customers";
+} from '../services/customers'
 
-export default function Customers() {
-  const { theme } = useTheme()
-  const [customers, setCustomers] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [editing, setEditing] = useState(null);
-  const [showForm, setShowForm] = useState(false);
-  const [file, setFile] = useState(null); // for CSV import
+// This component can operate in two modes:
+// 1) Controlled: receive `customers`, `onEdit`, `onDelete`, `theme` from parent (CustomerProfiles).
+// 2) Uncontrolled: if no `customers` prop is provided, it will fetch and manage its own list (backwards compatible).
+export default function Customers({ customers: propsCustomers, onEdit: propsOnEdit, onDelete: propsOnDelete, theme: propsTheme }) {
+  const [customers, setCustomers] = useState(propsCustomers || [])
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState(null)
+  const [editing, setEditing] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [file, setFile] = useState(null)
 
-  // Fetch all customers
+  const theme = propsTheme || {
+    spacing: { sm: 8, md: 12, lg: 18 },
+    radii: { medium: 8, large: 12 },
+    colors: { border: '#eee', subtleText: '#777', text: '#111', surface: '#fff', danger: '#c0392b' },
+    typography: { fontSizes: { lg: 18, md: 14, sm: 12, xl: 24 } },
+    button: { background: '#0f1724', color: '#fff' },
+    shadows: { card: '0 6px 20px rgba(0,0,0,0.06)' },
+    glassCard: { background: 'transparent', border: '1px solid rgba(0,0,0,0.06)' }
+  }
+
+  // If parent provided customers, respect that and don't fetch. Otherwise, fetch.
   const load = async () => {
-    setLoading(true);
-    setError(null);
+    if (propsCustomers) return
+    setLoading(true)
+    setError(null)
     try {
-      const res = await fetchCustomers();
-      setCustomers(res.data || []);
+      const res = await fetchCustomers()
+      setCustomers(res.data || [])
     } catch (err) {
-      console.error("load customers", err);
-      setError("Failed to load customers");
+      console.error('load customers', err)
+      setError('Failed to load customers')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   useEffect(() => {
-    load();
-  }, []);
+    if (!propsCustomers) load()
+  }, [])
 
-  // Create new or update existing customer
+  // Keep local list in sync when parent updates
+  useEffect(() => {
+    if (propsCustomers) setCustomers(propsCustomers)
+  }, [propsCustomers])
+
   const handleSubmit = async (payload) => {
     try {
       if (editing) {
-        const updated = await updateCustomer(editing._id, payload);
-        setCustomers((prev) =>
-          prev.map((c) => (c._id === updated._id ? updated : c))
-        );
+        const updated = await updateCustomer(editing._id, payload)
+        setCustomers((prev) => prev.map((c) => (c._id === updated._id ? updated : c)))
       } else {
-        const created = await createCustomer(payload);
-        setCustomers((prev) => [created, ...prev]);
+        const created = await createCustomer(payload)
+        setCustomers((prev) => [created, ...prev])
       }
-      setShowForm(false);
-      setEditing(null);
+      setShowForm(false)
+      setEditing(null)
     } catch (err) {
-      console.error("submit customer", err);
-      alert("Failed to save customer");
+      console.error('submit customer', err)
+      alert('Failed to save customer')
     }
-  };
+  }
 
   const handleEdit = (c) => {
-    setEditing(c);
-    setShowForm(true);
-  };
+    if (propsOnEdit) return propsOnEdit(c)
+    setEditing(c)
+    setShowForm(true)
+  }
 
   const handleDelete = async (c) => {
-    if (!window.confirm(`Delete customer ${c.name}?`)) return;
+    if (propsOnDelete) return propsOnDelete(c)
+    if (!window.confirm(`Delete customer ${c.name}?`)) return
     try {
-      await deleteCustomer(c._id);
-      setCustomers((prev) => prev.filter((p) => p._id !== c._id));
+      await deleteCustomer(c._id)
+      setCustomers((prev) => prev.filter((p) => p._id !== c._id))
     } catch (err) {
-      console.error("delete customer", err);
-      alert("Failed to delete");
+      console.error('delete customer', err)
+      alert('Failed to delete')
     }
-  };
+  }
 
-  // ✅ Import customers from CSV
   const handleImport = async () => {
-    if (!file) return alert("Please select a CSV file first!");
+    if (!file) return alert('Please select a CSV file first!')
     try {
-      await importCustomers(file);
-      alert("Customers imported successfully!");
-      load(); // refresh after import
+      await importCustomers(file)
+      alert('Customers imported successfully!')
+      load()
     } catch (err) {
-      console.error("import customers", err);
-      alert("Import failed!");
+      console.error('import customers', err)
+      alert('Import failed!')
     }
-  };
+  }
 
-  // ✅ Export customers to CSV
   const handleExport = async () => {
     try {
-      await exportCustomers();
+      await exportCustomers()
     } catch (err) {
-      console.error("export customers", err);
-      alert("Export failed!");
+      console.error('export customers', err)
+      alert('Export failed!')
     }
-  };
+  }
+
+  const cardStyle = {
+    padding: theme.spacing.md,
+    borderRadius: theme.radii.large,
+    background: theme.glassCard?.background || theme.colors.surface,
+    border: theme.glassCard?.border || `1px solid ${theme.colors.border}`,
+    boxShadow: theme.shadows.card
+  }
+
+  const btnSmall = {
+    padding: '6px 10px',
+    borderRadius: theme.radii.medium,
+    border: 'none',
+    cursor: 'pointer'
+  }
 
   return (
-    <div style={{ padding: theme.spacing.lg, color: theme.colors.text }}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: theme.spacing.md,
-        }}
-      >
-        <h2 style={{ color: theme.colors.primary }}>Customers</h2>
-        <div style={{ display: "flex", gap: theme.spacing.sm }}>
-          <button onClick={() => setShowForm(true)} style={{ borderRadius: theme.radii.small }}>Add Customer</button>
-          <button onClick={load} style={{ borderRadius: theme.radii.small }}>Refresh</button>
-
-          {/* ✅ Import/Export UI */}
-          <input
-            type="file"
-            accept=".csv"
-            onChange={(e) => setFile(e.target.files[0])}
-            style={{ marginLeft: theme.spacing.sm }}
-          />
-          <button onClick={handleImport} style={{ borderRadius: theme.radii.small }}>Import CSV</button>
-          <button onClick={handleExport} style={{ borderRadius: theme.radii.small }}>Export CSV</button>
-        </div>
-      </div>
-
+    <div style={{ marginTop: 12 }}>
       {showForm && (
-        <div
-          style={{
-            marginTop: theme.spacing.sm,
-            marginBottom: theme.spacing.sm,
-            background: theme.glassCard?.background || theme.colors.surface,
-            padding: theme.spacing.md,
-            borderRadius: theme.radii.medium,
-          }}
-        >
-          <CustomerForm
-            initialData={editing || {}}
-            onSubmit={handleSubmit}
-            onCancel={() => {
-              setShowForm(false);
-              setEditing(null);
-            }}
-          />
+        <div style={{ marginTop: 12, marginBottom: 12 }}>
+          <div style={{ width: '100%', maxWidth: 720 }}>
+            <CustomerForm initialData={editing || {}} onSubmit={handleSubmit} onCancel={() => { setShowForm(false); setEditing(null) }} />
+          </div>
         </div>
       )}
 
       {loading && <div>Loading...</div>}
-      {error && <div style={{ color: theme.colors.danger }}>{error}</div>}
+      {error && <div style={{ color: 'red' }}>{error}</div>}
 
-      <div style={{ marginTop: theme.spacing.md }}>
-        {customers.length === 0 && !loading ? (
-          <div style={{ color: theme.colors.subtleText }}>No customers yet.</div>
-        ) : (
-          <div style={{ display: "grid", gap: theme.spacing.sm }}>
-            {customers.map((c) => (
-              <div
-                key={c._id}
-                style={{
-                  padding: theme.spacing.md,
-                  border: `1px solid ${theme.colors.border}`,
-                  borderRadius: theme.radii.small,
-                  background: theme.glassCard?.background || theme.colors.surface,
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <div>
-                    <div style={{ fontWeight: 600, color: theme.colors.primary }}>{c.name}</div>
-                    <div style={{ fontSize: theme.typography.fontSizes.sm, color: theme.colors.subtleText }}>
-                      {c.company || ""} {c.email ? `• ${c.email}` : ""}
-                    </div>
-                  </div>
-                  <div>
-                    <button onClick={() => handleEdit(c)} style={{ marginRight: theme.spacing.sm, borderRadius: theme.radii.small }}>Edit</button>
-                    <button onClick={() => handleDelete(c)} style={{ borderRadius: theme.radii.small }}>Delete</button>
-                  </div>
-                </div>
-                {c.phone && <div style={{ marginTop: theme.spacing.sm }}>{c.phone}</div>}
-                {c.address && (
-                  <div style={{ marginTop: theme.spacing.xs, fontSize: theme.typography.fontSizes.sm, color: theme.colors.subtleText }}>
-                    {c.address}
-                  </div>
-                )}
+      <div style={{ display: 'grid', gap: 14 }}>
+        {customers.map((c) => (
+          <div key={c._id} style={{ ...cardStyle }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+              <div style={{ flex: 1, textAlign: 'center' }}>
+                <div style={{ fontWeight: 700, fontSize: theme.typography.fontSizes.xl }}>{c.name}</div>
+                <div style={{ color: theme.colors.subtleText, marginTop: 6 }}>{c.email || ''} {c.company ? `• ${c.company}` : ''}</div>
+                {c.phone && <div style={{ marginTop: theme.spacing.sm, fontSize: theme.typography.fontSizes.lg }}>{c.phone}</div>}
+                {c.notes && <div style={{ marginTop: theme.spacing.sm }}>{c.notes}</div>}
               </div>
-            ))}
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'flex-end' }}>
+                <button onClick={() => handleEdit(c)} style={{ ...btnSmall, background: '#fff', border: `1px solid ${theme.colors.border}` }}>Update</button>
+                <button onClick={() => handleDelete(c)} style={{ ...btnSmall, background: theme.colors.danger, color: '#fff' }}>Delete</button>
+              </div>
+            </div>
           </div>
-        )}
+        ))}
       </div>
     </div>
-  );
+  )
 }
