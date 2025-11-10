@@ -5,7 +5,7 @@ const multer = require("multer");
 const { Parser } = require("json2csv");
 const csv = require("csv-parser");
 
-const XLSX = require("xlsx");
+const ExcelJS = require('exceljs');
 
 // ==========================
 // CRUD OPERATIONS
@@ -114,32 +114,37 @@ exports.exportCustomersExcel = async (req, res) => {
 
     // Prepare worksheet data
     const fields = [
-      "name",
-      "email",
-      "phone",
-      "company",
-      "address",
-      "createdAt",
-      "updatedAt",
+      'name',
+      'email',
+      'phone',
+      'company',
+      'address',
+      'createdAt',
+      'updatedAt',
     ];
+
     const data = customers.map((c) => {
       const row = {};
-      fields.forEach((f) => (row[f] = c[f] || ""));
+      fields.forEach((f) => (row[f] = c[f] || ''));
       return row;
     });
 
-    const worksheet = XLSX.utils.json_to_sheet(data);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Customers");
+    // Use exceljs to generate .xlsx file
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Customers');
+
+    // define columns from fields (header, key)
+    worksheet.columns = fields.map((f) => ({ header: f, key: f, width: 20 }));
+
+    // add rows
+    worksheet.addRows(data);
 
     // Export file path
-    const exportDir = require("path").join(process.cwd(), "exports");
-    require("fs").mkdirSync(exportDir, { recursive: true });
-    const filePath = require("path").join(
-      exportDir,
-      `customers_${Date.now()}.xlsx`
-    );
-    XLSX.writeFile(workbook, filePath);
+    const exportDir = path.join(process.cwd(), 'exports');
+    fs.mkdirSync(exportDir, { recursive: true });
+    const filePath = path.join(exportDir, `customers_${Date.now()}.xlsx`);
+
+    await workbook.xlsx.writeFile(filePath);
 
     // Send file for download
     res.download(filePath, "customers.xlsx", (err) => {
