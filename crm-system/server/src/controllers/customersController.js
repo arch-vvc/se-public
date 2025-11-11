@@ -1,11 +1,9 @@
-const Customer = require("../models/customer");
-const path = require("path");
-const fs = require("fs");
-const multer = require("multer");
-const { Parser } = require("json2csv");
-const csv = require("csv-parser");
-
-const ExcelJS = require('exceljs');
+const Customer = require('../models/customer');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
+const { Parser } = require('json2csv');
+const csv = require('csv-parser');
 
 // ==========================
 // CRUD OPERATIONS
@@ -20,7 +18,7 @@ exports.getAll = async (req, res) => {
 
     const filter = {};
     if (search) {
-      const re = new RegExp(search, "i");
+      const re = new RegExp(search, 'i');
       filter.$or = [{ name: re }, { email: re }, { company: re }];
     }
 
@@ -32,8 +30,8 @@ exports.getAll = async (req, res) => {
 
     res.json({ data: customers, meta: { total, page, limit } });
   } catch (err) {
-    console.error("getAll customers error:", err);
-    res.status(500).json({ error: "Failed to fetch customers" });
+    console.error('getAll customers error:', err);
+    res.status(500).json({ error: 'Failed to fetch customers' });
   }
 };
 
@@ -42,11 +40,11 @@ exports.getOne = async (req, res) => {
   try {
     const { id } = req.params;
     const customer = await Customer.findById(id);
-    if (!customer) return res.status(404).json({ error: "Customer not found" });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
     res.json({ data: customer });
   } catch (err) {
-    console.error("getOne customer error:", err);
-    res.status(500).json({ error: "Failed to fetch customer" });
+    console.error('getOne customer error:', err);
+    res.status(500).json({ error: 'Failed to fetch customer' });
   }
 };
 
@@ -55,15 +53,15 @@ exports.create = async (req, res) => {
   try {
     const payload = req.body;
     if (!payload || !payload.name) {
-      return res.status(400).json({ error: "Missing required field: name" });
+      return res.status(400).json({ error: 'Missing required field: name' });
     }
 
     const customer = new Customer(payload);
     await customer.save();
     res.status(201).json({ data: customer });
   } catch (err) {
-    console.error("create customer error:", err);
-    res.status(500).json({ error: "Failed to create customer" });
+    console.error('create customer error:', err);
+    res.status(500).json({ error: 'Failed to create customer' });
   }
 };
 
@@ -74,15 +72,13 @@ exports.update = async (req, res) => {
     const payload = req.body;
     payload.updatedAt = Date.now();
 
-    const customer = await Customer.findByIdAndUpdate(id, payload, {
-      new: true,
-    });
-    if (!customer) return res.status(404).json({ error: "Customer not found" });
+    const customer = await Customer.findByIdAndUpdate(id, payload, { new: true });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
     res.json({ data: customer });
   } catch (err) {
-    console.error("update customer error:", err);
-    res.status(500).json({ error: "Failed to update customer" });
+    console.error('update customer error:', err);
+    res.status(500).json({ error: 'Failed to update customer' });
   }
 };
 
@@ -91,12 +87,12 @@ exports.remove = async (req, res) => {
   try {
     const { id } = req.params;
     const customer = await Customer.findByIdAndDelete(id);
-    if (!customer) return res.status(404).json({ error: "Customer not found" });
+    if (!customer) return res.status(404).json({ error: 'Customer not found' });
 
     res.json({ data: customer });
   } catch (err) {
-    console.error("remove customer error:", err);
-    res.status(500).json({ error: "Failed to delete customer" });
+    console.error('remove customer error:', err);
+    res.status(500).json({ error: 'Failed to delete customer' });
   }
 };
 
@@ -104,74 +100,42 @@ exports.remove = async (req, res) => {
 // CSV IMPORT / EXPORT
 // ==========================
 
-// GET /api/customers/export-excel
-exports.exportCustomersExcel = async (req, res) => {
-  try {
-    const customers = await Customer.find().lean();
-    if (!customers.length) {
-      return res.status(404).json({ error: "No customers to export" });
-    }
-
-    // Prepare worksheet data
-    const fields = [
-      'name',
-      'email',
-      'phone',
-      'company',
-      'address',
-      'createdAt',
-      'updatedAt',
-    ];
-
-    const data = customers.map((c) => {
-      const row = {};
-      fields.forEach((f) => (row[f] = c[f] || ''));
-      return row;
-    });
-
-    // Use exceljs to generate .xlsx file
-    const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet('Customers');
-
-    // define columns from fields (header, key)
-    worksheet.columns = fields.map((f) => ({ header: f, key: f, width: 20 }));
-
-    // add rows
-    worksheet.addRows(data);
-
-    // Export file path
-    const exportDir = path.join(process.cwd(), 'exports');
-    fs.mkdirSync(exportDir, { recursive: true });
-    const filePath = path.join(exportDir, `customers_${Date.now()}.xlsx`);
-
-    await workbook.xlsx.writeFile(filePath);
-
-    // Send file for download
-    res.download(filePath, "customers.xlsx", (err) => {
-      if (err) {
-        console.error("Excel file download error:", err);
-      } else {
-        console.log(`✅ Excel exported successfully: ${filePath}`);
-      }
-      // Optional: delete file after sending
-      // require('fs').unlinkSync(filePath);
-    });
-  } catch (err) {
-    console.error("exportCustomersExcel error:", err);
-    res.status(500).json({ error: "Failed to export customers as Excel" });
-  }
-};
-
 // Multer setup for file uploads
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ dest: 'uploads/' });
+
+// Multer setup for customer document uploads (PDF only)
+const docStorage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const dir = path.join(process.cwd(), 'uploads')
+    try {
+      fs.mkdirSync(dir, { recursive: true })
+    } catch (e) {}
+    cb(null, dir)
+  },
+  filename: (req, file, cb) => {
+    const safeName = file.originalname.replace(/[^a-zA-Z0-9.-_]/g, '_')
+    cb(null, `${Date.now()}-${safeName}`)
+  }
+})
+
+const docUpload = multer({
+  storage: docStorage,
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype !== 'application/pdf') {
+      return cb(new Error('Only PDF files are allowed'), false)
+    }
+    cb(null, true)
+  },
+  limits: { fileSize: 10 * 1024 * 1024 } // 10 MB limit
+})
 
 // POST /api/customers/import
 exports.importCustomers = [
-  upload.single("file"),
+  upload.single('file'),
   async (req, res) => {
     try {
       if (!req.file) {
-        return res.status(400).json({ error: "No file uploaded" });
+        return res.status(400).json({ error: 'No file uploaded' });
       }
 
       const filePath = req.file.path;
@@ -179,32 +143,33 @@ exports.importCustomers = [
 
       fs.createReadStream(filePath)
         .pipe(csv())
-        .on("data", (row) => importedData.push(row))
-        .on("end", async () => {
+        .on('data', (row) => importedData.push(row))
+        .on('end', async () => {
           // Bulk insert or update
           for (const data of importedData) {
             if (!data.email) continue; // skip invalid rows
-            await Customer.findOneAndUpdate({ email: data.email }, data, {
-              upsert: true,
-              new: true,
-            });
+            await Customer.findOneAndUpdate(
+              { email: data.email },
+              data,
+              { upsert: true, new: true }
+            );
           }
 
           fs.unlinkSync(filePath); // remove temp file
           res.json({
-            message: "Customers imported successfully",
-            count: importedData.length,
+            message: 'Customers imported successfully',
+            count: importedData.length
           });
         })
-        .on("error", (err) => {
-          console.error("CSV import error:", err);
-          res.status(500).json({ error: "Failed to import CSV file" });
+        .on('error', (err) => {
+          console.error('CSV import error:', err);
+          res.status(500).json({ error: 'Failed to import CSV file' });
         });
     } catch (err) {
-      console.error("importCustomers error:", err);
-      res.status(500).json({ error: "Failed to import customers" });
+      console.error('importCustomers error:', err);
+      res.status(500).json({ error: 'Failed to import customers' });
     }
-  },
+  }
 ];
 
 // GET /api/customers/export
@@ -212,32 +177,24 @@ exports.exportCustomers = async (req, res) => {
   try {
     const customers = await Customer.find().lean();
     if (!customers.length) {
-      return res.status(404).json({ error: "No customers to export" });
+      return res.status(404).json({ error: 'No customers to export' });
     }
 
-    const fields = [
-      "name",
-      "email",
-      "phone",
-      "company",
-      "address",
-      "createdAt",
-      "updatedAt",
-    ];
+    const fields = ['name', 'email', 'phone', 'company', 'address', 'createdAt', 'updatedAt'];
     const parser = new Parser({ fields });
     const csvData = parser.parse(customers);
 
     // ✅ Safer export path for Docker (write inside working directory)
-    const exportDir = path.join(process.cwd(), "exports");
+    const exportDir = path.join(process.cwd(), 'exports');
     fs.mkdirSync(exportDir, { recursive: true });
 
     const filePath = path.join(exportDir, `customers_${Date.now()}.csv`);
     fs.writeFileSync(filePath, csvData);
 
     // ✅ Send file for download
-    res.download(filePath, "customers.csv", (err) => {
+    res.download(filePath, 'customers.csv', (err) => {
       if (err) {
-        console.error("File download error:", err);
+        console.error('File download error:', err);
       } else {
         console.log(`✅ CSV exported successfully: ${filePath}`);
       }
@@ -245,7 +202,67 @@ exports.exportCustomers = async (req, res) => {
       // fs.unlinkSync(filePath);
     });
   } catch (err) {
-    console.error("exportCustomers error:", err);
-    res.status(500).json({ error: "Failed to export customers" });
+    console.error('exportCustomers error:', err);
+    res.status(500).json({ error: 'Failed to export customers' });
   }
 };
+
+// POST /api/customers/:id/document
+exports.uploadDocument = [
+  docUpload.single('document'),
+  async (req, res) => {
+    try {
+      const { id } = req.params
+      const customer = await Customer.findById(id)
+      if (!customer) return res.status(404).json({ error: 'Customer not found' })
+      if (!req.file) return res.status(400).json({ error: 'No file uploaded or invalid file type' })
+
+      // Remove previous file if exists
+      try {
+        if (customer.document && customer.document.filename) {
+          const prevPath = path.join(process.cwd(), 'uploads', customer.document.filename)
+          if (fs.existsSync(prevPath)) fs.unlinkSync(prevPath)
+        }
+      } catch (e) {
+        console.warn('Failed removing previous document', e.message)
+      }
+
+      customer.document = {
+        filename: req.file.filename,
+        originalName: req.file.originalname,
+        mimeType: req.file.mimetype,
+        size: req.file.size,
+        uploadedAt: Date.now()
+      }
+
+      await customer.save()
+      res.json({ data: customer })
+    } catch (err) {
+      console.error('uploadDocument error:', err)
+      res.status(500).json({ error: 'Failed to upload document' })
+    }
+  }
+]
+
+// DELETE /api/customers/:id/document
+exports.deleteDocument = async (req, res) => {
+  try {
+    const { id } = req.params
+    const customer = await Customer.findById(id)
+    if (!customer) return res.status(404).json({ error: 'Customer not found' })
+
+    if (customer.document && customer.document.filename) {
+      const filePath = path.join(process.cwd(), 'uploads', customer.document.filename)
+      if (fs.existsSync(filePath)) {
+        fs.unlinkSync(filePath)
+      }
+    }
+
+    customer.document = undefined
+    await customer.save()
+    res.json({ data: customer })
+  } catch (err) {
+    console.error('deleteDocument error:', err)
+    res.status(500).json({ error: 'Failed to delete document' })
+  }
+}

@@ -24,6 +24,21 @@ export async function deleteCustomer(id) {
   return res.data.data
 }
 
+export async function uploadCustomerDocument(id, file) {
+  const formData = new FormData()
+  formData.append('document', file)
+
+  const res = await api.post(`/customers/${id}/document`, formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  })
+  return res.data.data
+}
+
+export async function deleteCustomerDocument(id) {
+  const res = await api.delete(`/customers/${id}/document`)
+  return res.data.data
+}
+
 // ==========================
 // CSV IMPORT / EXPORT
 // ==========================
