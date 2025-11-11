@@ -13,10 +13,11 @@ const connectDB = async (uri) => {
     `mongodb://${mongoHost}:${mongoPort}/${mongoDB}`;
 
   try {
-    await mongoose.connect(mongoUri, {
-      useNewUrlParser: true,
-      useUnifiedTopology: true,
-    });
+    // Mongoose v7 no longer requires/accepts connection option flags like
+    // useNewUrlParser/useUnifiedTopology. Keep connection simple and set
+    // strictQuery explicitly to avoid deprecation warnings.
+    mongoose.set('strictQuery', false)
+    await mongoose.connect(mongoUri)
 
     console.log(`✅ MongoDB connected to ${mongoUri}`);
 
