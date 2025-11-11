@@ -11,48 +11,48 @@ The focus is Software Engineering methodology, repo structure, and CI/CD + teamw
 crm-project/
 │
 ├── backend/
-│   ├── src/
-│   │   ├── controllers/        # API logic (customers, leads, tickets)
-│   │   ├── models/             # Database schemas
-│   │   ├── routes/             # Express route definitions
-│   │   ├── services/           # Business logic (e.g., lead → opportunity)
-│   │   ├── utils/              # Helpers, validation
-│   │   └── app.js              # Entry point
-│   ├── tests/                  # Unit + integration tests
-│   ├── package.json
-│   └── README.md
+│ ├── src/
+│ │ ├── controllers/ # API logic (customers, leads, tickets)
+│ │ ├── models/ # Database schemas
+│ │ ├── routes/ # Express route definitions
+│ │ ├── services/ # Business logic (e.g., lead → opportunity)
+│ │ ├── utils/ # Helpers, validation
+│ │ └── app.js # Entry point
+│ ├── tests/ # Unit + integration tests
+│ ├── package.json
+│ └── README.md
 │
 ├── frontend/
-│   ├── src/
-│   │   ├── components/         # Reusable UI components
-│   │   ├── pages/              # Views (Customers, Leads, Reports)
-│   │   ├── services/           # API calls (axios/fetch)
-│   │   ├── utils/              # CSV import/export, helpers
-│   │   └── App.js
-│   ├── public/
-│   ├── package.json
-│   └── README.md
+│ ├── src/
+│ │ ├── components/ # Reusable UI components
+│ │ ├── pages/ # Views (Customers, Leads, Reports)
+│ │ ├── services/ # API calls (axios/fetch)
+│ │ ├── utils/ # CSV import/export, helpers
+│ │ └── App.js
+│ ├── public/
+│ ├── package.json
+│ └── README.md
 │
 ├── database/
-│   ├── schema.sql              # ER model and initial data
-│   ├── seed_data.sql
-│   └── README.md
+│ ├── schema.sql # ER model and initial data
+│ ├── seed_data.sql
+│ └── README.md
 │
 ├── docs/
-│   ├── SRS.md                  # Software Requirements Specification
-│   ├── DesignDoc.md            # Architecture & flow diagrams
-│   ├── TestPlan.md             # Test cases and verification plan
-│   ├── SprintPlan.md           # Daily sprint log
-│   └── Retrospective.md
+│ ├── SRS.md # Software Requirements Specification
+│ ├── DesignDoc.md # Architecture & flow diagrams
+│ ├── TestPlan.md # Test cases and verification plan
+│ ├── SprintPlan.md # Daily sprint log
+│ └── Retrospective.md
 │
 ├── .github/
-│   ├── workflows/
-│   │   ├── ci.yml              # Build + Test automation
-│   │   └── cd.yml              # Deployment (optional)
+│ ├── workflows/
+│ │ ├── ci.yml # Build + Test automation
+│ │ └── cd.yml # Deployment (optional)
 │
-├── .env.example                # Sample environment variables
-├── README.md                   # Project overview & setup guide
-└── CONTRIBUTING.md             # Team workflow & conventions
+├── .env.example # Sample environment variables
+├── README.md # Project overview & setup guide
+└── CONTRIBUTING.md # Team workflow & conventions
 
 ⚙️ Methodology & Team Workflow
 🔸 Software Development Model
@@ -64,12 +64,12 @@ Sprint 1 → Core CRM & lead management
 Sprint 2 → Reports, dashboards, support system
 
 🔸 Team Roles
-Member	Role	Responsibilities
-Austin	Scrum Master / Integrator	Repo setup, PR reviews, CI/CD
-Ashwin	Backend Developer	API & business logic
-Archit	Frontend Developer	UI & pipeline visualization
-Atharv	Data & Reporting	Forecasting, exports
-Thanav	QA / Documentation	Test cases, validation, reports
+Member Role Responsibilities
+Austin Scrum Master / Integrator Repo setup, PR reviews, CI/CD
+Ashwin Backend Developer API & business logic
+Archit Frontend Developer UI & pipeline visualization
+Atharv Data & Reporting Forecasting, exports
+Thanav QA / Documentation Test cases, validation, reports
 🔁 CI/CD Guidelines
 🧪 Continuous Integration (CI)
 
@@ -84,24 +84,21 @@ Generate build artifacts.
 Every PR triggers CI → must pass before merging.
 
 # ci.yml sample structure
+
 name: CI
 on:
-  pull_request:
-  push:
-    branches: [ main ]
+pull_request:
+push:
+branches: [ main ]
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - name: Setup Node
-        uses: actions/setup-node@v3
-        with:
-          node-version: 18
-      - name: Install deps
-        run: npm install --workspaces
-      - name: Run tests
-        run: npm test --workspaces
+build:
+runs-on: ubuntu-latest
+steps: - uses: actions/checkout@v3 - name: Setup Node
+uses: actions/setup-node@v3
+with:
+node-version: 18 - name: Install deps
+run: npm install --workspaces - name: Run tests
+run: npm test --workspaces
 
 🚀 Continuous Deployment (CD)
 
@@ -119,13 +116,13 @@ MONGO_URI=mongodb+srv://...
 JWT_SECRET=your_secret
 
 🧩 Git & Collaboration Rules
-Rule	Description
-Branching	Use feature/<story> naming (e.g. feature/add-customer-api)
-PR Reviews	Every PR reviewed by Austin before merge
-Commits	Use concise messages: feat: add lead conversion API
-Documentation	Update SprintPlan.md daily
-Definition of Done	Tested, documented, reviewed, merged
-Stand-ups	10 min daily on WhatsApp or GitHub Issues
+Rule Description
+Branching Use feature/<story> naming (e.g. feature/add-customer-api)
+PR Reviews Every PR reviewed by Austin before merge
+Commits Use concise messages: feat: add lead conversion API
+Documentation Update SprintPlan.md daily
+Definition of Done Tested, documented, reviewed, merged
+Stand-ups 10 min daily on WhatsApp or GitHub Issues
 
 📚 Documentation Standards
 
