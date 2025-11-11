@@ -114,6 +114,26 @@ export default function PipelineBoard({ onExport }) {
     }
   };
 
+  const handleDelete = async (opportunityId, opportunityName) => {
+    const confirmed = window.confirm(
+      `Delete "${opportunityName}"?\n\nThis cannot be undone.`
+    );
+
+    if (!confirmed) return;
+
+    try {
+      await opportunityService.deleteOpportunity(opportunityId);
+
+      // Remove from local state
+      setOpportunities((prev) =>
+        prev.filter((opp) => opp._id !== opportunityId)
+      );
+    } catch (err) {
+      console.error("Failed to delete opportunity:", err);
+      alert("Failed to delete opportunity. Please try again.");
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ padding: theme.spacing.lg, textAlign: "center" }}>
@@ -176,7 +196,6 @@ export default function PipelineBoard({ onExport }) {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
-                            onClick={() => setSelectedCustomer(opp)}
                             style={{
                               padding: theme.spacing.md,
                               margin: `${theme.spacing.sm}px 0`,
@@ -190,17 +209,63 @@ export default function PipelineBoard({ onExport }) {
                                 ? theme.shadows.float
                                 : theme.shadows.card,
                               cursor: "pointer",
+                              position: "relative",
                               ...provided.draggableProps.style,
                             }}
                           >
-                            <div style={{ fontWeight: 700 }}>{opp.name}</div>
-                            <div
-                              style={{
-                                fontSize: theme.typography.fontSizes.sm,
-                                color: theme.colors.subtleText,
+                            {/* Delete button in top-right corner */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation(); // Prevent card click from firing
+                                handleDelete(opp._id, opp.name);
                               }}
+                              style={{
+                                position: "absolute",
+                                top: "6px",
+                                right: "6px",
+                                background: theme.colors.danger || "#e74c3c",
+                                color: "#fff",
+                                border: "none",
+                                borderRadius: "4px",
+                                width: "22px",
+                                height: "22px",
+                                cursor: "pointer",
+                                fontSize: "14px",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: 0,
+                                opacity: 0.8,
+                                transition: "opacity 0.2s",
+                              }}
+                              onMouseEnter={(e) =>
+                                (e.target.style.opacity = "1")
+                              }
+                              onMouseLeave={(e) =>
+                                (e.target.style.opacity = "0.8")
+                              }
                             >
-                              {opp.issue}
+                              ×
+                            </button>
+
+                            {/* Card content - make clickable for details */}
+                            <div onClick={() => setSelectedCustomer(opp)}>
+                              <div
+                                style={{
+                                  fontWeight: 700,
+                                  paddingRight: "28px",
+                                }}
+                              >
+                                {opp.name}
+                              </div>
+                              <div
+                                style={{
+                                  fontSize: theme.typography.fontSizes.sm,
+                                  color: theme.colors.subtleText,
+                                }}
+                              >
+                                {opp.issue}
+                              </div>
                             </div>
                           </div>
                         )}

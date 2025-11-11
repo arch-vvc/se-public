@@ -121,7 +121,7 @@ exports.convertToOpportunity = async (req, res) => {
 
     const opportunityData = {
       name: lead.name,
-      issue: req.body.issue || `Opportunity for ${lead.name}`,
+      issue: lead.notes || req.body.issue || `Opportunity for ${lead.name}`,
       contact: lead.email || "No email provided",
       history: req.body.history || [],
       stage: "new",
