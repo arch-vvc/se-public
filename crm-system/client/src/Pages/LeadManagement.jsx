@@ -52,15 +52,7 @@ export default function LeadManagement() {
     }
   }
 
-  const changeStatus = async (lead, newStatus) => {
-    try {
-      const updated = await updateLead(lead._id, { ...lead, status: newStatus })
-      setLeads((prev) => prev.map((l) => (l._id === updated._id ? updated : l)))
-    } catch (err) {
-      console.error('update lead status', err)
-      alert('Failed to update status')
-    }
-  }
+  // stages removed - no status updates
 
   const card = {
     padding: theme.spacing.lg,
@@ -95,7 +87,7 @@ export default function LeadManagement() {
                 <div style={{ fontWeight: 700, fontSize: theme.typography.fontSizes.lg }}>{l.name}</div>
                 <div style={{ color: theme.colors.subtleText, marginTop: 4 }}>{l.email} {l.source ? `• ${l.source}` : ''}</div>
                 {l.notes && <div style={{ marginTop: theme.spacing.sm }}>{l.notes}</div>}
-                <div style={{ marginTop: theme.spacing.sm, color: theme.colors.subtleText }}>Status: <strong>{l.status}</strong></div>
+                {/* stages removed - no status shown */}
               </div>
 
               <div style={{ width: 300, display: 'flex', flexDirection: 'column', gap: 8 }}>
@@ -111,12 +103,7 @@ export default function LeadManagement() {
                 </select>
 
                 <div style={{ display: 'flex', gap: 8 }}>
-                  <select defaultValue={l.status} onChange={(e) => changeStatus(l, e.target.value)} style={{ flex: 1, padding: theme.spacing.sm, borderRadius: theme.radii.medium, border: `1px solid ${theme.colors.border}`, background: theme.colors.surface }}>
-                    <option value="new">New</option>
-                    <option value="in-progress">In Progress</option>
-                    <option value="escalated">Escalated</option>
-                    <option value="resolved">Resolved</option>
-                  </select>
+                  {/* stages removed - no status selector */}
 
                   <button onClick={load} style={{ padding: `${theme.spacing.sm}px ${theme.spacing.lg}px`, borderRadius: theme.radii.medium, border: 'none', background: theme.button.background, color: theme.button.color, cursor: 'pointer' }}>
                     Refresh

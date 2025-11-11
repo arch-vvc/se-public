@@ -22,7 +22,6 @@ export default function NewLeads() {
     name: '',
     email: '',
     source: '',
-    status: 'new',
     notes: ''
   })
 
@@ -76,7 +75,7 @@ export default function NewLeads() {
         const created = await createLead(form)
         setLeads((prev) => [created, ...prev])
       }
-      setForm({ name: '', email: '', source: '', status: 'new', notes: '' })
+  setForm({ name: '', email: '', source: '', notes: '' })
       setEditing(null)
       setFormError('')
     } catch (err) {
@@ -91,7 +90,6 @@ export default function NewLeads() {
       name: l.name || '',
       email: l.email || '',
       source: l.source || '',
-      status: l.status || 'new',
       notes: l.notes || ''
     })
     setFormError('')
@@ -176,13 +174,8 @@ export default function NewLeads() {
       >
         <input name="name" placeholder="Name *" value={form.name} onChange={handleChange} style={inputStyle} />
         <input name="email" placeholder="Email *" value={form.email} onChange={handleChange} style={inputStyle} />
-        <input name="source" placeholder="Source *" value={form.source} onChange={handleChange} style={inputStyle} />
-        <select name="status" value={form.status} onChange={handleChange} style={inputStyle}>
-          <option value="new">New</option>
-          <option value="in-progress">In Progress</option>
-          <option value="escalated">Escalated</option>
-          <option value="resolved">Resolved</option>
-        </select>
+  <input name="source" placeholder="Source *" value={form.source} onChange={handleChange} style={{ ...inputStyle, gridColumn: '1 / -1' }} />
+        {/* stages removed - status is no longer managed here */}
 
         <textarea
           name="notes"
@@ -261,9 +254,7 @@ export default function NewLeads() {
 
                 {l.notes && <div style={{ marginTop: theme.spacing.sm, color: theme.colors.text }}>{l.notes}</div>}
 
-                <div style={{ marginTop: theme.spacing.sm, fontSize: theme.typography.fontSizes.sm, color: theme.colors.subtleText }}>
-                  Status: {l.status}
-                </div>
+                {/* stages removed - no status shown */}
               </div>
             ))}
           </div>

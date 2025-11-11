@@ -4,8 +4,6 @@ const LeadSchema = new mongoose.Schema({
   name: { type: String, required: true, trim: true },
   email: { type: String, trim: true, lowercase: true },
   source: { type: String },
-  // Updated statuses to match Lead Management page
-  status: { type: String, enum: ['new', 'in-progress', 'escalated', 'resolved'], default: 'new' },
   // Assigned sales representative id (optional) — stored so Lead Management assignments persist
   assignedTo: { type: String },
   // Optional human-readable assigned rep name for convenience
