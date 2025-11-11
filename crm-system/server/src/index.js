@@ -8,6 +8,7 @@ const path = require('path');
 // Routers
 const customersRouter = require('./routes/customerRoutes');
 const leadsRouter = require('./routes/leadRoutes'); // ✅ added import
+const ticketsRouter = require('./routes/ticketRoutes');
 
 dotenv.config();
 
@@ -20,6 +21,7 @@ app.use(express.json());
 // Routes
 app.use('/api/customers', customersRouter);
 app.use('/api/leads', leadsRouter); // ✅ mounted leads routes
+app.use('/api/tickets', ticketsRouter);
 
 // Serve uploaded files (documents)
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
