@@ -17,7 +17,9 @@ export default function CustomerProfiles() {
     phone: "",
     notes: "",
   });
-  const [searchTerm, setSearchTerm] = useState("");
+  const [searchTerm, setSearchTerm] = useState();
+  const [uploadFile, setUploadFile] = useState(null);
+  const [uploading, setUploading] = useState(false);
 
   const load = async (q) => {
     setLoading(true);
@@ -100,6 +102,44 @@ export default function CustomerProfiles() {
     } catch (err) {
       console.error("export customers", err);
       alert("Failed to export customers");
+    }
+  };
+
+  const handleFileSelect = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    if (!file.name.endsWith(".csv")) {
+      alert("Please select a CSV file");
+      e.target.value = "";
+      return;
+    }
+
+    setUploadFile(file);
+  };
+
+  const handleUpload = async () => {
+    if (!uploadFile) {
+      alert("Please select a CSV file first");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const result = await customerService.importCustomers(uploadFile);
+      alert(`Successfully imported ${result.count} customers!`);
+      setUploadFile(null);
+      const fileInput = document.getElementById("csv-upload-input");
+      if (fileInput) fileInput.value = "";
+      await load();
+    } catch (err) {
+      console.error("import customers", err);
+      alert(
+        "Failed to import customers: " +
+          (err.response?.data?.error || err.message)
+      );
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -191,7 +231,59 @@ export default function CustomerProfiles() {
             </button>
           </div>
 
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
+            {/* Hidden file input for CSV upload */}
+            <input
+              id="csv-upload-input"
+              type="file"
+              accept=".csv"
+              onChange={handleFileSelect}
+              style={{ display: "none" }}
+            />
+
+            {/* Upload button - opens file picker */}
+            <button
+              onClick={() =>
+                document.getElementById("csv-upload-input").click()
+              }
+              disabled={uploading}
+              style={{
+                padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                borderRadius: theme.radii.medium,
+                border: "1px solid " + theme.colors.border,
+                background: "transparent",
+                color: theme.colors.text,
+                cursor: uploading ? "not-allowed" : "pointer",
+                opacity: uploading ? 0.6 : 1,
+              }}
+            >
+              {uploadFile
+                ? "📄 " +
+                  uploadFile.name.substring(0, 15) +
+                  (uploadFile.name.length > 15 ? "..." : "")
+                : "Upload"}
+            </button>
+
+            {/* Import button - only shows when file is selected */}
+            {uploadFile && (
+              <button
+                onClick={handleUpload}
+                disabled={uploading}
+                style={{
+                  padding: `${theme.spacing.sm}px ${theme.spacing.md}px`,
+                  borderRadius: theme.radii.medium,
+                  border: "none",
+                  background: theme.button.background,
+                  color: theme.button.color,
+                  cursor: uploading ? "not-allowed" : "pointer",
+                  opacity: uploading ? 0.6 : 1,
+                }}
+              >
+                {uploading ? "Importing..." : "Import"}
+              </button>
+            )}
+
+            {/* Download button */}
             <button
               onClick={handleDownload}
               style={{
@@ -205,6 +297,8 @@ export default function CustomerProfiles() {
             >
               Download
             </button>
+
+            {/* Add Customer button */}
             <button
               onClick={openAdd}
               style={{
